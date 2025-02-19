@@ -42,32 +42,59 @@ extern LONG test_add_mem_to_reg(
     REG(d1, LONG step)
 );
 
+extern LONG test_add_mem_to_reg_unrolled_4x(
+    REG(d0, ULONG count),
+    REG(d1, LONG step)
+);
+
 ULONG const BENCH_ITERATIONS = 10000000;
 LONG  const STEP_SIZE = 3;
 
 int main(void) {
     if (get_timer()) {
+        LONG result;
+        ULONG ticks, ms;
 
-		ReadEClock(&clk_begin.ecv);
-		LONG result = test_add_mem_to_reg(
-			BENCH_ITERATIONS,
-			STEP_SIZE
-		);
-		ReadEClock(&clk_end.ecv);
+        ReadEClock(&clk_begin.ecv);
+        result = test_add_mem_to_reg(
+            BENCH_ITERATIONS,
+            STEP_SIZE
+        );
+        ReadEClock(&clk_end.ecv);
+
+        ticks = (ULONG)(clk_end.ticks - clk_begin.ticks);
+        ms    = (1000 * ticks)/clock_freq_hz;
+
+        printf(
+            "Iterations: %lu, step: %ld\n"
+            "Result: %ld, expected %ld\n"
+            "Time: %lu EClock ticks (%lu ms)\n",
+            BENCH_ITERATIONS,
+            STEP_SIZE,
+            result, (BENCH_ITERATIONS * STEP_SIZE),
+            ticks, ms
+        );
+
+        ReadEClock(&clk_begin.ecv);
+        result = test_add_mem_to_reg_unrolled_4x(
+            BENCH_ITERATIONS,
+            STEP_SIZE
+        );
+        ReadEClock(&clk_end.ecv);
+
+        ticks = (ULONG)(clk_end.ticks - clk_begin.ticks);
+        ms    = (1000 * ticks)/clock_freq_hz;
+
+        printf(
+            "Unrolled (4x):\n"
+            "Result: %ld, expected %ld\n"
+            "Time: %lu EClock ticks (%lu ms)\n",
+            result, (BENCH_ITERATIONS * STEP_SIZE),
+            ticks, ms
+        );
+
+
         free_timer();
-
-		ULONG ticks = (ULONG)(clk_end.ticks - clk_begin.ticks);
-		ULONG ms    = (1000 * ticks)/clock_freq_hz;
-
-		printf(
-			"Iterations: %lu, step: %ld\n"
-			"Result: %ld, expected %ld\n"
-			"Time: %lu EClock ticks (%lu ms)\n",
-			BENCH_ITERATIONS,
-			STEP_SIZE,
-			result, (BENCH_ITERATIONS * STEP_SIZE),
-			ticks, ms
-		);
     }
     return 0;
 }
