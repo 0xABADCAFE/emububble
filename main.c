@@ -47,6 +47,12 @@ extern LONG test_add_mem_to_reg_unrolled_4x(
     REG(d1, LONG step)
 );
 
+extern LONG test_add_mem_to_reg_unrolled_4x_pf(
+    REG(d0, ULONG count),
+    REG(d1, LONG step)
+);
+
+
 ULONG const BENCH_ITERATIONS = 10000000;
 LONG  const STEP_SIZE = 3;
 
@@ -93,6 +99,23 @@ int main(void) {
             ticks, ms
         );
 
+        ReadEClock(&clk_begin.ecv);
+        result = test_add_mem_to_reg_unrolled_4x_pf(
+            BENCH_ITERATIONS,
+            STEP_SIZE
+        );
+        ReadEClock(&clk_end.ecv);
+
+        ticks = (ULONG)(clk_end.ticks - clk_begin.ticks);
+        ms    = (1000 * ticks)/clock_freq_hz;
+
+        printf(
+            "Unrolled (4x):\n"
+            "Result: %ld, expected %ld\n"
+            "Time: %lu EClock ticks (%lu ms)\n",
+            result, (BENCH_ITERATIONS * STEP_SIZE),
+            ticks, ms
+        );
 
         free_timer();
     }
